@@ -28,7 +28,7 @@ class AutoTemp:
         chosen_temp = float(input(colored("Choose the temperature of the output you like: ", "green")))
         return outputs.get(chosen_temp, "Invalid temperature chosen.")
 
-    def generate_with_chat(self, prompt, temperature):
+    def generate_with_openai(self, prompt, temperature):
         try:
             response = openai.ChatCompletion.create(
                 model="gpt-3.5-turbo",
@@ -43,7 +43,7 @@ class AutoTemp:
             return None
 
     def run(self, prompt):
-        initial_output_text = self.generate_with_chat(prompt, self.default_temp)
+        initial_output_text = self.generate_with_openai(prompt, self.default_temp)
 
         user_satisfied = self.ask_user_feedback(initial_output_text)
 
@@ -53,11 +53,11 @@ class AutoTemp:
             outputs = {}
             scores = {}
             for temp in self.alt_temps:
-                output_text = self.generate_with_chat(prompt, temp)
+                output_text = self.generate_with_openai(prompt, temp)
                 if output_text:
                     outputs[temp] = output_text
-                    eval_prompt = f"You are a task output evaluator. Rate the quality of the following output on a scale from 0 to 100. Output only an integer. The output is: {output_text}"
-                    score_text = self.generate_with_chat(eval_prompt, 0)
+                    eval_prompt = f"You are a precise task output evaluator. Rate the quality of the following output on a scale from 0 to 100. Output only an integer. The output is: {output_text}"
+                    score_text = self.generate_with_openai(eval_prompt, 0)
                     score_match = re.search(r'\d+', score_text)
                     if score_match:
                         scores[temp] = int(score_match.group())
