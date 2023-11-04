@@ -1,2 +1,3 @@
 openai
 termcolor
+python-dotenv
