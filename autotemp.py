@@ -8,7 +8,7 @@ import re
 load_dotenv()
 
 class AutoTemp:
-    def __init__(self, default_temp=0.5, alt_temps=None, auto_select=True):
+    def __init__(self, default_temp=0.0, alt_temps=None, auto_select=True):
         self.api_key = os.getenv('OPENAI_API_KEY')
         openai.api_key = self.api_key
         self.default_temp = default_temp
