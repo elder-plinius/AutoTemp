@@ -53,7 +53,7 @@ class AutoTemp:
             output_text = self.generate_with_openai(prompt, temp)
             if output_text:
                 outputs[temp] = output_text
-                eval_prompt = f"Rate the quality of the following output on a scale from 1 to 25. Be thorough, thoughtful, and precise and output only a number. The output is: {output_text}"
+                eval_prompt = f"You are now an expert task evaluator. Rate the quality of the following output on a scale from 1 to 25. Be thorough, thoughtful, and precise and output only a number. The output is: {output_text}"
                 score_text = self.generate_with_openai(eval_prompt, 0.123)
                 score_match = re.search(r'\d+', score_text)
                 if score_match:
