@@ -14,12 +14,11 @@ AutoTemp is a Python tool that enhances language model interactions by intellige
 
 To install AutoTemp, you can simply clone the repository and install the required dependencies.
 
-```bash
 git clone https://github.com/your-username/AutoTemp.git
 cd AutoTemp
 pip install -r requirements.txt
 
-Usage
+## Usage
 
 To use AutoTemp, initialize the AutoTempAgent class with your API key and preferred settings. Here's a basic example:
 
@@ -34,7 +33,7 @@ prompt = "Write a creative short story about a purple dragon"
 final_output = agent.run(prompt)
 print(final_output)
 
-Configuration
+## Configuration
 
 You can customize the behavior of AutoTemp by setting the following parameters when initializing AutoTempAgent:
 
