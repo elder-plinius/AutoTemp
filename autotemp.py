@@ -1,7 +1,7 @@
 from swarms.models import OpenAIChat  # Replace with your actual OpenAIChat import
 from termcolor import colored
 
-class MultiTempAgent:
+class AutoTemp:
     def __init__(self, api_key, default_temp=0.5, alt_temps=None, auto_select=True):
         self.api_key = api_key
         self.default_temp = default_temp
@@ -60,6 +60,6 @@ class MultiTempAgent:
 
 if __name__ == "__main__":
     api_key = ""  # Your OpenAI API key here
-    agent = MultiTempAgent(api_key, auto_select=True)  # Set auto_select to False if you want manual selection
+    agent = AutoTemp(api_key, auto_select=True)  # Set auto_select to False if you want manual selection
     prompt = "code a simple new innovative video game that i can play in browser"
     final_output = agent.run(prompt)
