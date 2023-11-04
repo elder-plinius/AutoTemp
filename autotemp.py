@@ -1,5 +1,4 @@
 import openai
-from termcolor import colored
 from dotenv import load_dotenv
 import os
 import re
@@ -16,17 +15,17 @@ class AutoTemp:
         self.auto_select = auto_select
 
     def ask_user_feedback(self, text):
-        print(colored("Generated text:", "green"))
-        print(colored(text, "white"))
-        feedback = input(colored("Are you satisfied with this output? (yes/no): ", "green"))
+        print("Generated text:")
+        print(text)
+        feedback = input("Are you satisfied with this output? (yes/no): ")
         return feedback.lower() == 'yes'
 
     def present_options_to_user(self, outputs):
-        print(colored("Alternative outputs:", "green"))
+        print("Alternative outputs:")
         for temp, output in outputs.items():
-            print(colored(f"Temperature {temp}:", "green") + colored(f" {output}", "blue"))
-        chosen_temp = float(input(colored("Choose the temperature of the output you like: ", "green")))
-        return outputs.get(chosen_temp, "Invalid temperature chosen.")
+            print(f"Temperature {temp}: {output}")
+        chosen_temp = float(input("Choose the temperature of the output you like: "))
+        return outputs.get(chosen_temp, "Invalid temperature chosen."), chosen_temp
 
     def generate_with_openai(self, prompt, temperature):
         try:
@@ -39,45 +38,49 @@ class AutoTemp:
             message = response['choices'][0]['message']['content']
             return message.strip()
         except Exception as e:
-            print(colored(f"Error generating text at temperature {temperature}: {e}", "red"))
+            print(f"Error generating text at temperature {temperature}: {e}")
             return None
 
     def run(self, prompt):
         initial_output_text = self.generate_with_openai(prompt, self.default_temp)
 
-        user_satisfied = self.ask_user_feedback(initial_output_text)
+        if self.ask_user_feedback(initial_output_text):
+            return initial_output_text, self.default_temp
 
-        if user_satisfied:
-            return initial_output_text
+        outputs = {}
+        scores = {}
+        for temp in self.alt_temps:
+            output_text = self.generate_with_openai(prompt, temp)
+            if output_text:
+                outputs[temp] = output_text
+                eval_prompt = f"Rate the quality of the following output on a scale from 1 to 25. Be thorough, thoughtful, and precise and output only a number. The output is: {output_text}"
+                score_text = self.generate_with_openai(eval_prompt, 0.123)
+                score_match = re.search(r'\d+', score_text)
+                if score_match:
+                    scores[temp] = int(score_match.group())
+                    print(f"Score for temperature {temp}: {scores[temp]}")
+                else:
+                    print(f"Unable to parse score for temperature {temp}. Received: {score_text}")
+                    scores[temp] = 0
+
+        if not scores:  # No scores could be generated
+            return "No valid outputs generated.", None
+
+        if self.auto_select:
+            best_temp = max(scores, key=scores.get, default=self.default_temp)
+            chosen_output = outputs.get(best_temp, "No valid outputs generated.")
+            return chosen_output, best_temp
         else:
-            outputs = {}
-            scores = {}
-            for temp in self.alt_temps:
-                output_text = self.generate_with_openai(prompt, temp)
-                if output_text:
-                    outputs[temp] = output_text
-                    eval_prompt = f"You are a precise task output evaluator. Rate the quality of the following output on a scale from 0 to 100. Output only an integer. The output is: {output_text}"
-                    score_text = self.generate_with_openai(eval_prompt, 0)
-                    score_match = re.search(r'\d+', score_text)
-                    if score_match:
-                        scores[temp] = int(score_match.group())
-                        print(colored(f"Score for temperature {temp}: {scores[temp]}", "yellow"))
-                    else:
-                        print(colored(f"Unable to parse score for temperature {temp}. Received: {score_text}", "red"))
-                        scores[temp] = 0
+            chosen_output, chosen_temp = self.present_options_to_user(outputs)
+            return chosen_output, chosen_temp
 
-            if self.auto_select:
-                best_temp = max(scores, key=scores.get, default=self.default_temp)
-                chosen_output = outputs.get(best_temp, "No valid outputs generated.")
-                print(colored(f"Automatically selected output from Temperature {best_temp}:", "green"))
-                print(colored(chosen_output, "white"))
-                return chosen_output
-            else:
-                chosen_output = self.present_options_to_user(outputs)
-                return chosen_output
-
+# Set up the AutoTemp agent
 if __name__ == "__main__":
-    agent = AutoTemp(auto_select=True)  # Set auto_select to False if you want manual selection
+    agent = AutoTemp()
     prompt = "Code a simple new innovative video game that I can play in browser in a single file"
-    final_output = agent.run(prompt)
-    print(final_output)
+    final_output, used_temp = agent.run(prompt)
+    if used_temp is not None:
+        print(f"Final selected output (Temperature {used_temp}):")
+        print(final_output)
+    else:
+        print("No valid output was generated.")
