@@ -28,7 +28,7 @@ This file should not be committed to your version control system as it contains 
 
 ## Usage
 
-To use AutoTemp, simply run the `autotemp.py` script with Python and follow the prompts:
+To use AutoTemp, simply run the `autotemp.py` script with Python and follow the prompts (saying "no" you are not satisfied will trigger autotemp):
 
 python autotemp.py
 
