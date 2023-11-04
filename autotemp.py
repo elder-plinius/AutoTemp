@@ -78,6 +78,6 @@ class AutoTemp:
 
 if __name__ == "__main__":
     agent = AutoTemp(auto_select=True)  # Set auto_select to False if you want manual selection
-    prompt = "Code a simple new innovative video game that I can play in browser"
+    prompt = "Code a simple new innovative video game that I can play in browser in a single file"
     final_output = agent.run(prompt)
     print(final_output)
