@@ -18,7 +18,7 @@ git clone https://github.com/elder-plinius/AutoTemp.git
 cd AutoTemp
 pip install -r requirements.txt
 
-## Configuration
+## Setting up your OpenAI API Key
 
 Before running AutoTemp, you need to set up your API key in an .env file at the root of the project:
 
