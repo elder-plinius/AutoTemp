@@ -1,38 +1,43 @@
 # AutoTemp
 
-AutoTemp is a sophisticated Python utility designed to streamline the interaction with generative language models. It generates multiple text outputs at different "temperatures" to provide a variety of responses from highly predictable to very creative. AutoTemp enhances the user experience by allowing for an automatic or manual selection of the best output based on the quality scores.
+AutoTemp is a Python tool that enhances language model interactions by intelligently selecting the optimal temperature setting for generating responses. It leverages multiple temperature settings to produce a variety of outputs and then evaluates these outputs to determine which temperature yields the best result for a given prompt.
 
-## Key Features
+## Features
 
-- **Variety of Outputs**: Generates text at different temperatures, offering a range from conservative and reliable to creative and diverse responses.
-- **Interactive Feedback**: Users can give immediate feedback on the generated text, ensuring it aligns with their expectations.
-- **Automated Selection**: Features an automated selection process that picks the best output based on internal scoring, enhancing efficiency.
-- **Manual Override**: Users can choose their preferred output manually, offering greater control over the final selection.
-- **Scoring Visibility**: Scores for each temperature's output are displayed for transparency, allowing users to understand the selection process.
+- **Multi-Temperature Evaluation**: Tests multiple temperature settings to find the best output for a given prompt.
+- **User Feedback Integration**: Allows users to provide feedback on generated outputs, which can be used to inform the selection of the optimal temperature.
+- **Automatic or Manual Selection**: Supports both automatic selection of the best output based on scores and manual selection by presenting options to the user.
+- **Customizable Temperature Range**: Users can define a custom range of temperatures to be tested for each prompt.
+- **Easy Integration**: Designed to work with OpenAI's GPT-3.5 and compatible with other language models that support temperature settings.
 
 ## Installation
 
-Before you begin, ensure you have Python 3.6 or later installed.
+To install AutoTemp, you can simply clone the repository and install the required dependencies.
 
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/elder-plinius/AutoTemp.git
-   cd AutoTemp
-
-    Install the required dependencies:
-
-    bash
-
-    pip install -r requirements.txt
+```bash
+git clone https://github.com/your-username/AutoTemp.git
+cd AutoTemp
+pip install -r requirements.txt
 
 Usage
 
-Set up your language model API key in the environment or directly in the script, then execute the auto_temp.py script with your desired prompt:
+To use AutoTemp, initialize the AutoTempAgent class with your API key and preferred settings. Here's a basic example:
 
-bash
+python
 
-python auto_temp.py "Create a simple and innovative browser-based video game."
+from autotemp import AutoTempAgent
+
+api_key = "your-api-key-here"  # Replace with your actual OpenAI API key
+agent = AutoTempAgent(api_key=api_key, auto_select=True)
+
+prompt = "Write a creative short story about a purple dragon"
+final_output = agent.run(prompt)
+print(final_output)
 
 Configuration
 
-You can customize the default temperature, alternative temperatures, and the auto_select feature in the auto_temp.py script according to your needs.
+You can customize the behavior of AutoTemp by setting the following parameters when initializing AutoTempAgent:
+
+    default_temp: The default temperature to use for initial output.
+    alt_temps: A list of alternative temperatures to evaluate.
+    auto_select: Whether to automatically select the best output or present options to the user.
