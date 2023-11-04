@@ -77,7 +77,7 @@ class AutoTemp:
 # Set up the AutoTemp agent
 if __name__ == "__main__":
     agent = AutoTemp()
-    prompt = "Code a simple new innovative video game that I can play in browser in a single file"
+    prompt = "Write a short story about a day in the life of AGI"
     final_output, used_temp = agent.run(prompt)
     if used_temp is not None:
         print(f"Final selected output (Temperature {used_temp}):")
