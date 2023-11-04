@@ -18,20 +18,20 @@ git clone https://github.com/your-username/AutoTemp.git
 cd AutoTemp
 pip install -r requirements.txt
 
+## Configuration
+
+Before running AutoTemp, you need to set up your API key in an .env file at the root of the project:
+
+OPENAI_API_KEY='your-api-key-here'
+
+This file should not be committed to your version control system as it contains sensitive information.
+
 ## Usage
 
-To use AutoTemp, initialize the AutoTempAgent class with your API key and preferred settings. Here's a basic example:
+To use AutoTemp, simply run the `autotemp.py` script with Python and follow the prompts:
 
-python
+python autotemp.py
 
-from autotemp import AutoTempAgent
-
-api_key = "your-api-key-here"  # Replace with your actual OpenAI API key
-agent = AutoTempAgent(api_key=api_key, auto_select=True)
-
-prompt = "Write a creative short story about a purple dragon"
-final_output = agent.run(prompt)
-print(final_output)
 
 ## Configuration
 
