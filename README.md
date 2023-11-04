@@ -8,13 +8,13 @@ AutoTemp is a Python tool that enhances language model interactions by intellige
 - **User Feedback Integration**: Allows users to provide feedback on generated outputs, which can be used to inform the selection of the optimal temperature.
 - **Automatic or Manual Selection**: Supports both automatic selection of the best output based on scores and manual selection by presenting options to the user.
 - **Customizable Temperature Range**: Users can define a custom range of temperatures to be tested for each prompt.
-- **Easy Integration**: Designed to work with OpenAI's GPT-3.5 and compatible with other language models that support temperature settings.
+- **Easy Integration**: Designed to work with OpenAI's GPT-3.5 or GPT-4 and is compatible with other language models that support temperature settings.
 
 ## Installation
 
 To install AutoTemp, you can simply clone the repository and install the required dependencies.
 
-git clone https://github.com/your-username/AutoTemp.git
+git clone https://github.com/elder-plinius/AutoTemp.git
 cd AutoTemp
 pip install -r requirements.txt
 
