@@ -101,8 +101,8 @@ def main():
         fn=run_autotemp,
         inputs=["text", "checkbox"],
         outputs="text",
-        title="AutoTemp Quality Scoring",
-        description="This app generates responses at different temperatures, evaluates them individually, and ranks them based on their scores. Toggle 'Auto Select' to either get the best output or see all evaluated outputs.",
+        title="AutoTemp: Improved LLM Completions through Temperature Tuning",
+        description="This app generates responses at different temperatures, evaluates them individually, and ranks them based on their scores. Toggle 'Auto Select' to either see just the best output or see all evaluated outputs.",
     )
     iface.launch()
 
