@@ -102,7 +102,7 @@ def main():
         inputs=["text", "checkbox"],
         outputs="text",
         title="AutoTemp: Improved LLM Completions through Temperature Tuning",
-        description="This app generates responses at different temperatures, evaluates them individually, and ranks them based on their scores. Toggle 'Auto Select' to either see just the best output or see all evaluated outputs.",
+        description="This app generates responses at different temperatures, evaluates them individually, and ranks them based on their scores. Click 'Auto Select' to see only the best output or leave unchecked to see all evaluated outputs.",
     )
     iface.launch()
 
