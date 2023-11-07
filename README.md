@@ -14,15 +14,15 @@ AutoTemp is a Python tool that enhances language model interactions by intellige
 To install AutoTemp, you can simply clone the repository and install the required dependencies.
 
 
-git clone https://github.com/elder-plinius/AutoTemp.git
-cd AutoTemp
-pip install -r requirements.txt
+    git clone https://github.com/elder-plinius/AutoTemp.git
+    cd AutoTemp
+    pip install -r requirements.txt
 
 ## OpenAI API Key
 
 Before running AutoTemp, you need to set up your API key in an .env file at the root of the project:
 
-OPENAI_API_KEY='your-api-key-here'
+    OPENAI_API_KEY='your-api-key-here'
 
 This file should not be committed to your version control system as it contains sensitive information.
 
@@ -30,7 +30,7 @@ This file should not be committed to your version control system as it contains 
 
 To use AutoTemp, simply run the autotemp.py script with Python:
 
-python autotemp.py
+    python autotemp.py
 
 
 You can pass your prompt directly into the AutoTemp class instance within the script.
