@@ -40,7 +40,8 @@ class AutoTemp:
                 if retries <= 0:
                     return f"Error generating text at temperature {temperature} and top-p {top_p}: {e}"
 
-    def evaluate_output(self, output, temperature):
+    def evaluate_output(self, output, temperature, top_p):
+        fixed_top_p_for_evaluation = 1.0
         eval_prompt = f"""
             Evaluate the following output which was generated at a temperature setting of {temperature}. Provide a precise score from 0.0 to 100.0, considering the following criteria:
 
@@ -57,7 +58,7 @@ class AutoTemp:
             {output}
             ---
             """
-        score_text = self.generate_with_openai(eval_prompt, 0.5, top_p)  # Use a neutral temperature for evaluation
+        score_text = self.generate_with_openai(eval_prompt, 0.5, fixed_top_p_for_evaluation)
         score_match = re.search(r'\b\d+(\.\d)?\b', score_text)
         if score_match:
             return round(float(score_match.group()), 1)  # Round the score to one decimal place
@@ -77,7 +78,7 @@ class AutoTemp:
                 output_text = future.result()
                 if output_text and not output_text.startswith("Error"):
                     outputs[temp] = output_text
-                    scores[temp] = self.evaluate_output(output_text, temp)
+                    scores[temp] = self.evaluate_output(output_text, temp, top_p)  # Pass top_p here
 
         if not scores:
             return "No valid outputs generated.", None
@@ -114,10 +115,23 @@ def main():
         description="""AutoTemp generates responses at different temperatures, evaluates them, and ranks them based on quality. 
                        Enter temperatures separated by commas for evaluation.
                        Adjust 'Top-p' to control output diversity: lower for precision, higher for creativity.
-                       Toggle 'Auto Select' to either see the top-rated output or all evaluated outputs.""",
-        article="""**What's Top-p?** 'Top-p' controls the diversity of AI responses: a low 'top-p' makes output more focused and predictable, 
-                   while a high 'top-p' encourages variety and surprise. Pair with temperature to fine-tune AI creativity: 
-                   higher temperatures with high 'top-p' for bold ideas, or lower temperatures with low 'top-p' for precise answers.""",
+                       Toggle 'Auto Select' to either see the top-rated output or all evaluated outputs.
+                       Check the FAQs at the bottom of the page for more info.""",
+        article="""**FAQs**
+
+**What's Top-p?** 'Top-p' controls the diversity of AI responses: a low 'top-p' makes output more focused and predictable, while a high 'top-p' encourages variety and surprise. Pair with temperature to fine-tune AI creativity: higher temperatures with high 'top-p' for bold ideas, or lower temperatures with low 'top-p' for precise answers.
+
+**How Does Temperature Affect AI Outputs?** Temperature controls the randomness of word selection. Lower temperatures lead to more predictable text, while higher temperatures allow for more novel text generation.
+
+**How Does Top-p Influence Temperature Settings in AI Language Models?**
+Top-p and temperature are both parameters that control the randomness of AI-generated text, but they influence outcomes in subtly different ways. Here's a summary of their interaction:
+
+- At Low Temperatures (0.0 - 0.5): High top-p has a limited effect; low top-p further narrows word choice.
+- At Medium Temperatures (0.5 - 0.7): Top-p begins to have a noticeable impact; higher top-p adds variety.
+- At High Temperatures (0.8 - 1.0): Top-p is crucial; high top-p leads to creative, less coherent outputs.
+- At Extra-High Temperatures (1.1 - 2.0): Outputs become experimental; top-p's impact is less predictable.
+
+Adjusting both temperature and top-p helps tailor the AI's output to your specific needs.""",
         examples=[
             ["Write a short story about AGI learning to love", "0.5, 0.7, 0.9, 1.1", 1.0, False],
             ["Create a dialogue between a chef and an alien creating an innovative new recipe", "0.3, 0.6, 0.9, 1.2", 0.9, True],
