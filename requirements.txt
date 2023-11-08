@@ -1,5 +1,3 @@
 openai
 python-dotenv
 gradio
-regex
-concurrent.futures
