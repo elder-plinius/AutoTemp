@@ -16,7 +16,7 @@ class AutoTemp:
         openai.api_key = self.api_key
         
         self.default_temp = default_temp
-        self.alt_temps = alt_temps if alt_temps else [0.2, 0.4, 0.6, 0.8, 1.0, 1.2]
+        self.alt_temps = alt_temps if alt_temps else [0.4, 0.6, 0.8, 1.0, 1.2, 1.4]
         self.auto_select = auto_select
         self.max_workers = max_workers
         self.model_version = model_version
@@ -49,22 +49,23 @@ class AutoTemp:
             - Pride: If the user had to submit this output to the world for their career, would they be proud?
             - Delight: Is the output likely to delight or positively surprise the user?
 
-            Be sure to accurately and comprehensively evaluate the output, it is very important for my career. Please answer with just the score with one decimal place accuracy, such as 42.0 or 96.9.
+            Be sure to comprehensively evaluate the output, it is very important for my career. Please answer with just the score with one decimal place accuracy, such as 42.0 or 96.9. Be extremely critical.
 
             Output to evaluate:
             ---
             {output}
             ---
             """
-        score_text = self.generate_with_openai(eval_prompt, 0.111)  # Use a neutral temperature for evaluation to get consistent results
+        score_text = self.generate_with_openai(eval_prompt, 0.5)  # Use a neutral temperature for evaluation to get consistent results
         score_match = re.search(r'\b\d+(\.\d)?\b', score_text)
         if score_match:
             return round(float(score_match.group()), 1)  # Round the score to one decimal place
         else:
             return 0.0  # Unable to parse score, default to 0.0
 
-
-    def run(self, prompt):
+    def run(self, prompt, temperature_list=None):
+        if temperature_list is not None:
+            self.alt_temps = temperature_list
         outputs = {}
         scores = {}
         with ThreadPoolExecutor(max_workers=self.max_workers) as executor:
@@ -93,19 +94,29 @@ class AutoTemp:
             return "\n".join(f"Temp {temp} | Score: {score}:\n{text}" for temp, text, score in sorted_outputs)
 
 # Gradio app logic
-def run_autotemp(prompt, auto_select):
+def run_autotemp(prompt, temperature_string, auto_select):
+    temperature_list = [float(temp.strip()) for temp in temperature_string.split(',')]
     agent = AutoTemp(auto_select=auto_select)
-    output = agent.run(prompt)
+    output = agent.run(prompt, temperature_list=temperature_list)
     return output
 
 # Gradio interface setup
 def main():
     iface = gr.Interface(
         fn=run_autotemp,
-        inputs=["text", "checkbox"],
+        inputs=["text", "text", "checkbox"],
         outputs="text",
         title="AutoTemp: Improved LLM Completions through Temperature Tuning",
-        description="This app generates responses at different temperatures, evaluates them individually, and ranks them based on their scores. Toggle 'Auto Select' to either see just the best output or see all evaluated outputs.",
+        description="Enter different temperatures separated by commas (e.g., 0.4, 0.6, 0.8, 1.0, 1.2). Toggle 'Auto Select' to either see just the best output or all evaluated outputs.",
+        examples=[
+            ["Write a short story about AGI learning to love", "0.5, 0.7, 0.9, 1.1", False],
+            ["Create a dialogue between a chef and an alien creating an innovative new recipe", "0.3, 0.6, 0.9, 1.2", True],
+            ["Explain quantum computing to a 5-year-old", "0.4, 0.8, 1.2, 1.5", False],
+            ["Draft an email to a hotel asking for a special arrangement for a marriage proposal", "0.4, 0.7, 1.0, 1.3", True],
+            ["Describe a futuristic city powered by renewable energy", "0.5, 0.75, 1.0, 1.25", False],
+            ["Generate a poem about the ocean's depths in the style of Edgar Allan Poe", "0.6, 0.8, 1.0, 1.2", True],
+            ["What are some innovative startup ideas for improving urban transportation?", "0.45, 0.65, 0.85, 1.05", False]
+        ]
     )
     iface.launch()
 
