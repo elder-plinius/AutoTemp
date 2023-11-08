@@ -41,25 +41,28 @@ class AutoTemp:
 
     def evaluate_output(self, output, temperature):
         eval_prompt = f"""
-            Evaluate the following output which was generated at a temperature setting of {temperature}. With the utmost precision, grade its quality on a scale from 0 to 100, considering:
+            Evaluate the following output which was generated at a temperature setting of {temperature}. Provide a precise score from 0.0 to 100.0, considering the following criteria:
 
-            - Relevance to the prompt or task.
-            - Clarity and ease of understanding.
-            - Utility and usefulness for the intended purpose.
-            - Engagement and ability to maintain interest.
-            - Correctness and accuracy of the information provided.
+            - Relevance: How well does the output address the prompt or task at hand?
+            - Clarity: Is the output easy to understand and free of ambiguity?
+            - Utility: How useful is the output for its intended purpose?
+            - Pride: If the user had to submit this output to the world for their career, would they be proud?
+            - Delight: Is the output likely to delight or positively surprise the user?
+
+            Be sure to accurately and comprehensively evaluate the output, it is very important for my career. Please answer with just the score with one decimal place accuracy, such as 42.0 or 96.9.
 
             Output to evaluate:
             ---
             {output}
             ---
             """
-        score_text = self.generate_with_openai(eval_prompt, 0.222)  # Use a neutral temperature for evaluation to get consistent results
-        score_match = re.search(r'\b\d+(\.\d+)?\b', score_text)
+        score_text = self.generate_with_openai(eval_prompt, 0.111)  # Use a neutral temperature for evaluation to get consistent results
+        score_match = re.search(r'\b\d+(\.\d)?\b', score_text)
         if score_match:
-            return float(score_match.group())
+            return round(float(score_match.group()), 1)  # Round the score to one decimal place
         else:
-            return 0  # Unable to parse score, default to 0
+            return 0.0  # Unable to parse score, default to 0.0
+
 
     def run(self, prompt):
         outputs = {}
@@ -102,7 +105,7 @@ def main():
         inputs=["text", "checkbox"],
         outputs="text",
         title="AutoTemp: Improved LLM Completions through Temperature Tuning",
-        description="This app generates responses at different temperatures, evaluates them individually, and ranks them based on their scores. Click 'Auto Select' to see only the best output or leave unchecked to see all evaluated outputs.",
+        description="This app generates responses at different temperatures, evaluates them individually, and ranks them based on their scores. Toggle 'Auto Select' to either see just the best output or see all evaluated outputs.",
     )
     iface.launch()
 
