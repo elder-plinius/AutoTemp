@@ -1,3 +1,5 @@
 openai
-termcolor
 python-dotenv
+gradio
+regex
+concurrent.futures
