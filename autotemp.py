@@ -63,7 +63,7 @@ class AutoTemp:
             {output}
             ---
             """
-        score_text = self.generate_with_openai(eval_prompt, 0.5, fixed_top_p_for_evaluation)
+        score_text = self.generate_with_openai(eval_prompt, 0.69, fixed_top_p_for_evaluation)
         score_match = re.search(r'\b\d+(\.\d)?\b', score_text)
         if score_match:
             return round(float(score_match.group()), 1)  # Round the score to one decimal place
