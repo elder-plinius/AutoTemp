@@ -30,8 +30,8 @@
                     <input id="model" value="gpt-5-chat-latest" />
                 </div>
                 <div class="field">
-                    <label for="judges">Judges: <span id="judgesVal">3</span></label>
-                    <input type="range" id="judges" min="1" max="7" step="1" value="3" />
+                    <label for="judges">Judges: <span id="judgesVal">1</span></label>
+                    <input type="range" id="judges" min="1" max="7" step="1" value="1" />
                 </div>
                 <div class="field">
                     <label class="inline"><input type="checkbox" id="autoSelect" checked /> Auto Select Best</label>
@@ -43,63 +43,71 @@
                     <input id="temperatures" value="0.4,0.6,0.8,1.0" />
                     <div class="dotbar" id="tempDots"></div>
                 </div>
-                <div class="field">
-                    <label for="tops">top_p list</label>
-                    <input id="tops" value="1.0" />
-                    <div class="dotbar" id="topDots"></div>
-                </div>
-                <div class="field">
-                    <label for="maxTokens">max_tokens list</label>
-                    <input id="maxTokens" value="512" />
-                    <div class="dotbar" id="maxTokDots"></div>
-                </div>
+                <div class="field"></div>
+                <div class="field"></div>
             </div>
-            <div class="grid-3">
-                <div class="field">
-                    <label for="freqPen">frequency_penalty list</label>
-                    <input id="freqPen" value="0" />
-                    <div class="dotbar" id="freqDots"></div>
+            <details class="advanced">
+                <summary>Advanced settings</summary>
+                <div class="grid-3">
+                    <div class="field">
+                        <label for="tops">top_p list</label>
+                        <input id="tops" value="1.0" />
+                        <div class="dotbar" id="topDots"></div>
+                    </div>
+                    <div class="field">
+                        <label for="maxTokens">max_tokens list</label>
+                        <input id="maxTokens" value="512" />
+                        <div class="dotbar" id="maxTokDots"></div>
+                    </div>
+                    <div class="field">
+                        <label for="stopSeqs">stop tokens (comma-separated)</label>
+                        <input id="stopSeqs" placeholder="e.g. \nEND,###" />
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="field">
+                        <label for="freqPen">frequency_penalty list</label>
+                        <input id="freqPen" value="0" />
+                        <div class="dotbar" id="freqDots"></div>
+                    </div>
+                    <div class="field">
+                        <label for="presPen">presence_penalty list</label>
+                        <input id="presPen" value="0" />
+                        <div class="dotbar" id="presDots"></div>
+                    </div>
+                    <div class="field">
+                        <label for="judgeWeight">Judge weight: <span id="judgeWeightVal">0.70</span></label>
+                        <input type="range" id="judgeWeight" min="0" max="1" step="0.05" value="0.7" />
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="field">
+                        <label for="lengthTarget">Length target (% of max_tokens): <span id="lengthTargetVal">60%</span></label>
+                        <input type="range" id="lengthTarget" min="10" max="100" step="5" value="60" />
+                    </div>
+                    <div class="field">
+                        <label class="inline"><input type="checkbox" id="useHeuristics" checked /> Use heuristic signals</label>
+                    </div>
+                    <div class="field">
+                        <label class="inline"><input type="checkbox" id="advancedMode" /> Advanced Mode (UCB over arms)</label>
+                    </div>
+                </div>
+                <div class="grid-3">
+                    <div class="field">
+                        <label for="rounds">Rounds (advanced): <span id="roundsVal">8</span></label>
+                        <input type="range" id="rounds" min="1" max="50" step="1" value="8" />
+                    </div>
+                    <div class="field">
+                        <label for="explorationC">Exploration c (UCB): <span id="cVal">1.0</span></label>
+                        <input type="range" id="explorationC" min="0" max="3" step="0.1" value="1.0" />
+                    </div>
+                    <div class="field"></div>
                 </div>
                 <div class="field">
-                    <label for="presPen">presence_penalty list</label>
-                    <input id="presPen" value="0" />
-                    <div class="dotbar" id="presDots"></div>
+                    <label for="judgeSystemPrompt">Judge System Prompt (used for evaluation)</label>
+                    <textarea id="judgeSystemPrompt" rows="6" placeholder="Define the system instructions for judge evaluations..."></textarea>
                 </div>
-                <div class="field">
-                    <label for="stopSeqs">stop tokens (comma-separated)</label>
-                    <input id="stopSeqs" placeholder="e.g. \nEND,###" />
-                </div>
-            </div>
-            <div class="grid-3">
-                <div class="field">
-                    <label for="judgeWeight">Judge weight: <span id="judgeWeightVal">0.70</span></label>
-                    <input type="range" id="judgeWeight" min="0" max="1" step="0.05" value="0.7" />
-                </div>
-                <div class="field">
-                    <label for="lengthTarget">Length target (% of max_tokens): <span id="lengthTargetVal">60%</span></label>
-                    <input type="range" id="lengthTarget" min="10" max="100" step="5" value="60" />
-                </div>
-                <div class="field">
-                    <label class="inline"><input type="checkbox" id="useHeuristics" checked /> Use heuristic signals</label>
-                </div>
-            </div>
-            <div class="grid-3">
-                <div class="field">
-                    <label class="inline"><input type="checkbox" id="advancedMode" /> Advanced Mode (UCB over arms)</label>
-                </div>
-                <div class="field">
-                    <label for="rounds">Rounds (advanced): <span id="roundsVal">8</span></label>
-                    <input type="range" id="rounds" min="1" max="50" step="1" value="8" />
-                </div>
-                <div class="field">
-                    <label for="explorationC">Exploration c (UCB): <span id="cVal">1.0</span></label>
-                    <input type="range" id="explorationC" min="0" max="3" step="0.1" value="1.0" />
-                </div>
-            </div>
-            <div class="field">
-                <label for="judgeSystemPrompt">Judge System Prompt (used for evaluation)</label>
-                <textarea id="judgeSystemPrompt" rows="6" placeholder="Define the system instructions for judge evaluations..."></textarea>
-            </div>
+            </details>
             <div class="note">Provide comma-separated values to sweep. The app will form the Cartesian product across lists and evaluate each hyperparameter arm.</div>
         </section>
 
