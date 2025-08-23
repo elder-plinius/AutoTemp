@@ -41,8 +41,9 @@ Output between triple dashes:
 ---
 ${output}
 ---`;
+  const systemPrompt = (document.getElementById('judgeSystemPrompt')?.value || '').trim() || 'Return only the JSON.';
   const raw = await openAIChat(apiKey, model, [
-    { role: 'system', content: 'Return only the JSON.' },
+    { role: 'system', content: systemPrompt },
     { role: 'user', content: evalPrompt }
   ], 0.2, 1.0);
   try {
@@ -195,6 +196,40 @@ document.addEventListener('DOMContentLoaded', () => {
     c.data.datasets[0].data.push({ x: temp, y: mean });
     c.update('none');
   }
+  // Run state and controls
+  let running = false;
+  let cancelled = false;
+  let runResults = { arms: [], records: [] };
+  const runBtn = getEl('runBtn');
+  const stopBtn = getEl('stopBtn');
+  const downloadBtn = getEl('downloadBtn');
+  function enableRunButtons(isRunning){
+    running = !!isRunning;
+    if (runBtn) runBtn.disabled = running;
+    if (stopBtn) stopBtn.disabled = !running;
+    if (downloadBtn) downloadBtn.disabled = running || !runResults.records.length;
+  }
+  function recordResult(arm, output, judges){
+    try { runResults.records.push({ timestamp: Date.now(), arm, output, judges }); } catch(e) {}
+    if (downloadBtn) downloadBtn.disabled = running ? true : !runResults.records.length;
+  }
+  function downloadJSON(){
+    const blob = new Blob([JSON.stringify(runResults, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = 'autotemp_results.json'; a.click();
+    URL.revokeObjectURL(url);
+  }
+  if (downloadBtn) downloadBtn.addEventListener('click', downloadJSON);
+  if (stopBtn) stopBtn.addEventListener('click', () => { if (running) { cancelled = true; appendLog('Stop requested: finishing current step then halting.'); } });
+  // Persist judge system prompt
+  const judgeSystemPromptEl = getEl('judgeSystemPrompt');
+  if (judgeSystemPromptEl){
+    const saved = localStorage.getItem('autotemp_judge_system_prompt');
+    if (saved) judgeSystemPromptEl.value = saved;
+    else judgeSystemPromptEl.value = 'You are a strict evaluator. Return only a minified JSON with the numeric fields: {"relevance","clarity","utility","creativity","coherence","safety","overall"}. Do not include text outside JSON.';
+    judgeSystemPromptEl.addEventListener('input', ()=> localStorage.setItem('autotemp_judge_system_prompt', judgeSystemPromptEl.value));
+  }
   const judges = getEl('judges');
   const rounds = getEl('rounds');
   const explorationC = getEl('explorationC');
@@ -202,7 +237,39 @@ document.addEventListener('DOMContentLoaded', () => {
   rounds.addEventListener('input', ()=> setText('roundsVal', rounds.value));
   explorationC.addEventListener('input', ()=> setText('cVal', (+explorationC.value).toFixed(2)));
 
+  // Dotbar helpers to visualize/select discrete values
+  function initDotbar(containerId, min, max, step, parseFn, inputId){
+    const bar = getEl(containerId); const inp = getEl(inputId);
+    if (!bar || !inp) return;
+    bar.innerHTML = '<div class="range"></div><div class="labels"><span>'+min+'</span><span>'+max+'</span></div>';
+    const values = (inp.value||'').split(',').map(s=>parseFn(s.trim())).filter(v=>!Number.isNaN(v));
+    const active = new Set(values.map(v=>String(v)));
+    const count = Math.floor((max-min)/step)+1;
+    for (let i=0;i<count;i++){
+      const v = +(min + i*step).toFixed( (step<1 && step>0) ? 2 : 0 );
+      const dot = document.createElement('div'); dot.className='dot '+(active.has(String(v))?'':'inactive');
+      dot.style.left = `${(i/(count-1))*100}%`;
+      dot.title = String(v);
+      dot.addEventListener('click', ()=>{
+        const key = String(v);
+        if (active.has(key)) active.delete(key); else active.add(key);
+        dot.classList.toggle('inactive');
+        const list = Array.from(active).map(x=>parseFn(x));
+        list.sort((a,b)=>a-b);
+        inp.value = list.join(',');
+      });
+      bar.appendChild(dot);
+    }
+  }
+
+  initDotbar('tempDots', 0.0, 1.5, 0.1, parseFloat, 'temperatures');
+  initDotbar('topDots', 0.0, 1.0, 0.1, parseFloat, 'tops');
+  initDotbar('maxTokDots', 64, 2048, 64, x=>parseInt(x,10), 'maxTokens');
+  initDotbar('freqDots', 0.0, 2.0, 0.1, parseFloat, 'freqPen');
+  initDotbar('presDots', 0.0, 2.0, 0.1, parseFloat, 'presPen');
+
   getEl('runBtn').addEventListener('click', async () => {
+    if (running) { appendLog('Run already in progress. Please wait or press Stop.'); return; }
     const apiKey = getEl('apiKey').value.trim();
     const remember = getEl('rememberKey').checked;
     if (!apiKey) { alert('Please enter an API key.'); return; }
@@ -244,11 +311,16 @@ document.addEventListener('DOMContentLoaded', () => {
     status.textContent = 'Running...';
     appendLog(`Initialized ${arms.length} arms. Judges=${j}. Advanced=${adv ? 'UCB' : 'Standard'}.`);
     renderArmsTable(arms);
+    // initialize run state
+    cancelled = false;
+    runResults = { arms, records: [] };
+    enableRunButtons(true);
     try {
       const c = ensureChart(); if (c){ c.data.datasets[0].data = []; c.update('none'); }
       if (!adv) {
         const outputs = {}; const details = {}; const overalls = {};
         for (const arm of arms){
+          if (cancelled) break;
           updateArmRow(arm, { status:'running', statusClass:'status-running' });
           appendLog(`Generating for arm ${JSON.stringify(arm)}...`);
           const text = await generateOnce(apiKey, model, prompt, arm);
@@ -256,8 +328,9 @@ document.addEventListener('DOMContentLoaded', () => {
           appendLog(`Judging arm ${JSON.stringify(arm)}...`);
           const judgeResults = await Promise.all(Array.from({length: j}).map((_,i)=> judgeOnce(apiKey, model, text, arm, i+1)));
           const agg = aggregateScores(judgeResults);
+          recordResult(arm, text, agg);
           details[JSON.stringify(arm)] = agg; overalls[JSON.stringify(arm)] = agg.overall;
-          const paramHtml = `<div class="arm-params">Params: <code>${escapeHtml(JSON.stringify(arm))}</code></div>`;
+          const paramHtml = `<div class="arm-params"><span class="label">Params</span><pre>${escapeHtml(JSON.stringify(arm, null, 2))}</pre></div>`;
           const outputHtml = `<div class="arm-output-box"><pre>${escapeHtml(text)}</pre></div>`;
           const scoresHtml = `<div class="arm-scores">Scores: <code>${escapeHtml(JSON.stringify(agg))}</code></div>`;
           updateArmRow(arm, { status:'done', statusClass:'status-done', pulls:1, mean:agg.overall, best:agg.overall, detail: paramHtml + outputHtml + scoresHtml });
@@ -283,20 +356,23 @@ document.addEventListener('DOMContentLoaded', () => {
         for (const arm of arms){ updateArmRow(arm, { status:'running', statusClass:'status-running' }); }
         // init pull each arm
         for (const arm of arms){
+          if (cancelled) break;
           appendLog(`Init pull -> ${JSON.stringify(arm)}`);
           const k = JSON.stringify(arm);
           const text = await generateOnce(apiKey, model, prompt, arm);
           const judgeResults = await Promise.all(Array.from({length: j}).map((_,i)=> judgeOnce(apiKey, model, text, arm, i+1)));
           const agg = aggregateScores(judgeResults);
+          recordResult(arm, text, agg);
           pulls[k] += 1; sums[k] += agg.overall; total += 1;
           if (agg.overall > best[k].overall) best[k] = {overall: agg.overall, text, detail: agg};
-          const paramHtml = `<div class="arm-params">Params: <code>${escapeHtml(JSON.stringify(arm))}</code></div>`;
+          const paramHtml = `<div class="arm-params"><span class="label">Params</span><pre>${escapeHtml(JSON.stringify(arm, null, 2))}</pre></div>`;
           const outputHtml = `<div class="arm-output-box"><pre>${escapeHtml(text)}</pre></div>`;
           const scoresHtml = `<div class="arm-scores">Scores: <code>${escapeHtml(JSON.stringify(agg))}</code></div>`;
           updateArmRow(arm, { pulls:pulls[k], mean:(sums[k]/pulls[k]), best:best[k].overall, detail: paramHtml + outputHtml + scoresHtml });
           if (typeof arm.temperature === 'number') addChartPoint(arm.temperature, agg.overall);
         }
         for (let i=0;i<r-1;i++){
+          if (cancelled) break;
           // compute UCB
           const ucb = {};
           for (const arm of arms){
@@ -311,9 +387,10 @@ document.addEventListener('DOMContentLoaded', () => {
           const text = await generateOnce(apiKey, model, prompt, arm);
           const judgeResults = await Promise.all(Array.from({length: j}).map((_,i)=> judgeOnce(apiKey, model, text, arm, i+1)));
           const agg = aggregateScores(judgeResults);
+          recordResult(arm, text, agg);
           pulls[nextK] += 1; sums[nextK] += agg.overall; total += 1;
           if (agg.overall > best[nextK].overall) best[nextK] = {overall: agg.overall, text, detail: agg};
-          const paramHtml = `<div class=\"arm-params\">Params: <code>${escapeHtml(JSON.stringify(arm))}</code></div>`;
+          const paramHtml = `<div class=\"arm-params\"><span class=\"label\">Params</span><pre>${escapeHtml(JSON.stringify(arm, null, 2))}</pre></div>`;
           const outputHtml = `<div class=\"arm-output-box\"><pre>${escapeHtml(text)}</pre></div>`;
           const scoresHtml = `<div class=\"arm-scores\">Scores: <code>${escapeHtml(JSON.stringify(agg))}</code></div>`;
           updateArmRow(arm, { pulls:pulls[nextK], mean:(sums[nextK]/pulls[nextK]), best:best[nextK].overall, detail: paramHtml + outputHtml + scoresHtml });
@@ -333,10 +410,12 @@ document.addEventListener('DOMContentLoaded', () => {
           results.textContent = lines.join('\n');
         }
       }
-      status.textContent = 'Done.';
+      status.textContent = cancelled ? 'Stopped.' : 'Done.';
+      enableRunButtons(false);
     } catch (e) {
       status.textContent = 'Error';
       results.textContent = String(e?.message || e);
+      enableRunButtons(false);
     }
   });
 });

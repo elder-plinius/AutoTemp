@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AutoTemp — Research-Grade Hyperparameter Optimization</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="./style.css" />
 </head>
 <body>
@@ -38,28 +41,46 @@
                 <div class="field">
                     <label for="temperatures">temperature list</label>
                     <input id="temperatures" value="0.4,0.6,0.8,1.0" />
+                    <div class="dotbar" id="tempDots"></div>
                 </div>
                 <div class="field">
                     <label for="tops">top_p list</label>
                     <input id="tops" value="1.0" />
+                    <div class="dotbar" id="topDots"></div>
                 </div>
                 <div class="field">
                     <label for="maxTokens">max_tokens list</label>
                     <input id="maxTokens" value="256,512" />
+                    <div class="dotbar" id="maxTokDots"></div>
                 </div>
             </div>
             <div class="grid-3">
                 <div class="field">
                     <label for="freqPen">frequency_penalty list</label>
                     <input id="freqPen" value="0,0.2" />
+                    <div class="dotbar" id="freqDots"></div>
                 </div>
                 <div class="field">
                     <label for="presPen">presence_penalty list</label>
                     <input id="presPen" value="0,0.2" />
+                    <div class="dotbar" id="presDots"></div>
                 </div>
                 <div class="field">
                     <label for="stopSeqs">stop tokens (comma-separated)</label>
                     <input id="stopSeqs" placeholder="e.g. \nEND,###" />
+                </div>
+            </div>
+            <div class="grid-3">
+                <div class="field">
+                    <label for="judgeWeight">Judge weight: <span id="judgeWeightVal">0.70</span></label>
+                    <input type="range" id="judgeWeight" min="0" max="1" step="0.05" value="0.7" />
+                </div>
+                <div class="field">
+                    <label for="lengthTarget">Length target (% of max_tokens): <span id="lengthTargetVal">60%</span></label>
+                    <input type="range" id="lengthTarget" min="10" max="100" step="5" value="60" />
+                </div>
+                <div class="field">
+                    <label class="inline"><input type="checkbox" id="useHeuristics" checked /> Use heuristic signals</label>
                 </div>
             </div>
             <div class="grid-3">
@@ -75,6 +96,10 @@
                     <input type="range" id="explorationC" min="0" max="3" step="0.1" value="1.0" />
                 </div>
             </div>
+            <div class="field">
+                <label for="judgeSystemPrompt">Judge System Prompt (used for evaluation)</label>
+                <textarea id="judgeSystemPrompt" rows="6" placeholder="Define the system instructions for judge evaluations..."></textarea>
+            </div>
             <div class="note">Provide comma-separated values to sweep. The app will form the Cartesian product across lists and evaluate each hyperparameter arm.</div>
         </section>
 
@@ -85,6 +110,8 @@
 
         <section class="actions">
             <button id="runBtn">Run AutoTemp</button>
+            <button id="stopBtn" disabled>Stop</button>
+            <button id="downloadBtn" disabled>Download Results</button>
             <span id="status"></span>
         </section>
 

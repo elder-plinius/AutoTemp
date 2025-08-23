@@ -94,7 +94,7 @@ class AutoTemp:
                     return f"Error generating text at temperature {temperature} and top-p {top_p}: {e}", None
 
 
-    def _evaluate_output_json(self, output: str, temperature: float, top_p: float, judge_id: int) -> Dict[str, float]:
+    def _evaluate_output_json(self, prompt_text: str, output: str, temperature: float, top_p: float, judge_id: int) -> Dict[str, float]:
         fixed_top_p_for_evaluation = 1.0
         eval_prompt = f"""
             You are Judge #{judge_id}. Evaluate the OUTPUT below which was generated at temperature {temperature} and top_p {top_p}.
@@ -108,7 +108,12 @@ class AutoTemp:
             - coherence: Logical structure and consistency.
             - safety: Avoids hallucinations and harmful content; favors factual accuracy.
             - overall: Weighted aggregate you deem most faithful to a careful human judge.
-            Output to evaluate between triple dashes:
+            Judge the OUTPUT relative to the PROMPT/task given to the model.
+            PROMPT between triple equal signs:
+            ===
+            {prompt_text}
+            ===
+            OUTPUT between triple dashes:
             ---
             {output}
             ---
@@ -141,13 +146,13 @@ class AutoTemp:
                 "overall": round(fallback_overall, 1),
             }
 
-    def evaluate_output(self, output: str, temperature: float, top_p: float) -> Dict[str, float]:
+    def evaluate_output(self, prompt_text: str, output: str, temperature: float, top_p: float) -> Dict[str, float]:
         if self.judges <= 1:
-            judge_scores = [self._evaluate_output_json(output, temperature, top_p, judge_id=1)]
+            judge_scores = [self._evaluate_output_json(prompt_text, output, temperature, top_p, judge_id=1)]
         else:
             with ThreadPoolExecutor(max_workers=min(self.judges, self.max_workers)) as executor:
                 futures = [
-                    executor.submit(self._evaluate_output_json, output, temperature, top_p, judge_id=j+1)
+                    executor.submit(self._evaluate_output_json, prompt_text, output, temperature, top_p, judge_id=j+1)
                     for j in range(self.judges)
                 ]
                 judge_scores = [f.result() for f in as_completed(futures)]
@@ -188,7 +193,7 @@ class AutoTemp:
                         print(f"Output for temp {temp}: {output_text}")
                         if output_text and not output_text.startswith("Error"):
                             outputs[temp] = output_text
-                            score_dict = self.evaluate_output(output_text, temp, top_p)
+                            score_dict = self.evaluate_output(prompt, output_text, temp, top_p)
                             detailed_scores[temp] = score_dict
                             overall_scores[temp] = score_dict.get("overall", 0.0)
                     except Exception as e:
@@ -228,7 +233,7 @@ class AutoTemp:
             for t in init_order:
                 out, _ = self.generate_with_openai(prompt, t, top_p)
                 if out and not out.startswith("Error"):
-                    score_detail = self.evaluate_output(out, t, top_p)
+                    score_detail = self.evaluate_output(prompt, out, t, top_p)
                     score = score_detail.get("overall", 0.0)
                     pulls[t] += 1
                     sums[t] += score
@@ -250,7 +255,7 @@ class AutoTemp:
                 next_t = max(temperature_list, key=lambda tt: ucb_values[tt])
                 out, _ = self.generate_with_openai(prompt, next_t, top_p)
                 if out and not out.startswith("Error"):
-                    score_detail = self.evaluate_output(out, next_t, top_p)
+                    score_detail = self.evaluate_output(prompt, out, next_t, top_p)
                     score = score_detail.get("overall", 0.0)
                     pulls[next_t] += 1
                     sums[next_t] += score
