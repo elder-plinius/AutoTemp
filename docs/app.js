@@ -264,7 +264,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   initDotbar('tempDots', 0.0, 1.5, 0.1, parseFloat, 'temperatures');
   initDotbar('topDots', 0.0, 1.0, 0.1, parseFloat, 'tops');
-  initDotbar('maxTokDots', 64, 2048, 64, x=>parseInt(x,10), 'maxTokens');
+  // Reduce noise: wider steps for max_tokens
+  initDotbar('maxTokDots', 128, 8192, 384, x=>parseInt(x,10), 'maxTokens');
   initDotbar('freqDots', 0.0, 2.0, 0.1, parseFloat, 'freqPen');
   initDotbar('presDots', 0.0, 2.0, 0.1, parseFloat, 'presPen');
 
