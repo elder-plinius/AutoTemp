@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AutoTemp — Research-Grade Hyperparameter Optimization</title>
+    <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">▌▌ AutoTemp</div>
+            <div class="subtitle">Hyperparameter Lab — hacker mode</div>
+        </header>
+
+        <section class="config">
+            <div class="field">
+                <label for="apiKey">OpenAI API Key</label>
+                <input type="password" id="apiKey" placeholder="sk-..." />
+                <label class="inline">
+                    <input type="checkbox" id="rememberKey" /> Remember in this browser
+                </label>
+            </div>
+            <div class="grid-3">
+                <div class="field">
+                    <label for="model">Model</label>
+                    <input id="model" value="gpt-5-chat-latest" />
+                </div>
+                <div class="field">
+                    <label for="judges">Judges: <span id="judgesVal">3</span></label>
+                    <input type="range" id="judges" min="1" max="7" step="1" value="3" />
+                </div>
+                <div class="field">
+                    <label class="inline"><input type="checkbox" id="autoSelect" checked /> Auto Select Best</label>
+                </div>
+            </div>
+            <div class="grid-3">
+                <div class="field">
+                    <label for="temperatures">temperature list</label>
+                    <input id="temperatures" value="0.4,0.6,0.8,1.0" />
+                </div>
+                <div class="field">
+                    <label for="tops">top_p list</label>
+                    <input id="tops" value="1.0" />
+                </div>
+                <div class="field">
+                    <label for="maxTokens">max_tokens list</label>
+                    <input id="maxTokens" value="256,512" />
+                </div>
+            </div>
+            <div class="grid-3">
+                <div class="field">
+                    <label for="freqPen">frequency_penalty list</label>
+                    <input id="freqPen" value="0,0.2" />
+                </div>
+                <div class="field">
+                    <label for="presPen">presence_penalty list</label>
+                    <input id="presPen" value="0,0.2" />
+                </div>
+                <div class="field">
+                    <label for="stopSeqs">stop tokens (comma-separated)</label>
+                    <input id="stopSeqs" placeholder="e.g. \nEND,###" />
+                </div>
+            </div>
+            <div class="grid-3">
+                <div class="field">
+                    <label class="inline"><input type="checkbox" id="advancedMode" /> Advanced Mode (UCB over arms)</label>
+                </div>
+                <div class="field">
+                    <label for="rounds">Rounds (advanced): <span id="roundsVal">8</span></label>
+                    <input type="range" id="rounds" min="1" max="50" step="1" value="8" />
+                </div>
+                <div class="field">
+                    <label for="explorationC">Exploration c (UCB): <span id="cVal">1.0</span></label>
+                    <input type="range" id="explorationC" min="0" max="3" step="0.1" value="1.0" />
+                </div>
+            </div>
+            <div class="note">Provide comma-separated values to sweep. The app will form the Cartesian product across lists and evaluate each hyperparameter arm.</div>
+        </section>
+
+        <section class="prompt terminal">
+            <label for="userPrompt">Prompt</label>
+            <textarea id="userPrompt" rows="8" placeholder="Enter your prompt..."></textarea>
+        </section>
+
+        <section class="actions">
+            <button id="runBtn">Run AutoTemp</button>
+            <span id="status"></span>
+        </section>
+
+        <section class="output terminal">
+            <h2>Results</h2>
+            <pre id="results" class="glow"></pre>
+        </section>
+
+        <section class="workflow terminal">
+            <h2>Workflow</h2>
+            <div class="chart-wrap">
+                <canvas id="scoreChart" height="180"></canvas>
+            </div>
+            <div class="table-wrap">
+                <table id="armsTable" class="arms-table">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Pulls</th>
+                            <th>Mean</th>
+                            <th>Best</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="runlog terminal">
+            <h2>Run Log</h2>
+            <pre id="runLog" class="log"></pre>
+        </section>
+
+        <footer class="footer">
+            <div class="blink">>_</div>
+            <p>Security: Key stays in-browser (localStorage opt-in). Prefer proxies for shared deployments.</p>
+        </footer>
+    </div>
+
+    <script src="./app.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedKey = localStorage.getItem('autotemp_api_key');
+            if (savedKey) {
+                document.getElementById('apiKey').value = savedKey;
+                document.getElementById('rememberKey').checked = true;
+            }
+        });
+    </script>
+</body>
+</html>
+
+

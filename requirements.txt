@@ -1,3 +1,6 @@
 openai
 python-dotenv
 gradio
+rouge-score
+sacrebleu
+bert-score
