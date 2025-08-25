@@ -56,6 +56,7 @@ pre{ white-space:pre-wrap; background:#010a06; padding:14px; border-radius:10px;
 .footer{ display:flex; align-items:center; gap:10px; opacity:.85 }
 .blink{ width:8px; height:18px; background:var(--accent); animation: blink 1s infinite }
 .glow{ text-shadow:0 0 8px rgba(0,255,156,.35) }
+.hint{ font-size:12px; color:#a5ffd6; margin-top:6px }
 @keyframes blink{ 50%{ opacity:.2 } }
 @media(max-width:720px){ .grid-2,.grid-3{ grid-template-columns:1fr } }
 

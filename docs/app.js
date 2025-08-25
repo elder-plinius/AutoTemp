@@ -1,6 +1,7 @@
 async function openAIChat(apiKey, model, messages, temperature = 0.7, top_p = 1.0, extra = {}) {
   const useCustom = document.getElementById('useCustomApiBase');
-  const base = (useCustom && useCustom.checked ? (document.getElementById('apiBase')?.value?.trim()) : '') || 'https://api.openai.com/v1';
+  let base = (useCustom && useCustom.checked ? (document.getElementById('apiBase')?.value?.trim()) : '') || 'https://api.openai.com/v1';
+  if (!/\/v1\/?$/.test(base)) base = base.replace(/\/$/, '') + '/v1';
   const url = base.replace(/\/$/, '') + '/chat/completions';
   const res = await fetch(url, {
     method: 'POST',
@@ -210,6 +211,19 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.setItem('autotemp_use_custom_api', useCustom.checked ? '1' : '0');
     });
   }
+  // Show effective base URL
+  function updateEffective(){
+    const eff = document.getElementById('apiBaseEffective');
+    if (!eff) return;
+    const useCustom = document.getElementById('useCustomApiBase');
+    let base = (useCustom && useCustom.checked ? (document.getElementById('apiBase')?.value?.trim()) : '') || 'https://api.openai.com/v1';
+    if (!/\/v1\/?$/.test(base)) base = base.replace(/\/$/, '') + '/v1';
+    eff.textContent = base.replace(/\/$/, '') + '/chat/completions';
+  }
+  const apiBaseInput = getEl('apiBase');
+  if (apiBaseInput){ apiBaseInput.addEventListener('input', updateEffective); }
+  if (useCustom){ useCustom.addEventListener('change', updateEffective); }
+  updateEffective();
   // Run state and controls
   let running = false;
   let cancelled = false;
