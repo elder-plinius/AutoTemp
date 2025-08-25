@@ -287,7 +287,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (running) { appendLog('Run already in progress. Please wait or press Stop.'); return; }
     const apiKey = getEl('apiKey').value.trim();
     const remember = getEl('rememberKey').checked;
-    if (!apiKey) { alert('Please enter an API key.'); return; }
+    const useCustomNow = !!(getEl('useCustomApiBase') && getEl('useCustomApiBase').checked);
+    const baseNow = (useCustomNow ? (getEl('apiBase')?.value?.trim()) : '') || 'https://api.openai.com/v1';
+    const requiresKey = baseNow.includes('api.openai.com');
+    if (requiresKey && !apiKey) { alert('Please enter an API key (OpenAI). Or toggle "Use custom API Base" for a local server without a key.'); return; }
     if (remember) localStorage.setItem('autotemp_api_key', apiKey); else localStorage.removeItem('autotemp_api_key');
 
     const model = getEl('model').value.trim() || 'gpt-4o-mini';
