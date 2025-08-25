@@ -26,6 +26,16 @@
             </div>
             <div class="grid-3">
                 <div class="field">
+                    <label class="inline"><input type="checkbox" id="useCustomApiBase" /> Use custom API Base</label>
+                </div>
+                <div class="field" id="apiBaseField" style="display:none">
+                    <label for="apiBase">API Base URL</label>
+                    <input id="apiBase" value="http://127.0.0.1:1234/v1" placeholder="http://127.0.0.1:1234/v1" />
+                </div>
+                <div class="field"></div>
+            </div>
+            <div class="grid-3">
+                <div class="field">
                     <label for="model">Model</label>
                     <input id="model" value="gpt-5-chat-latest" />
                 </div>

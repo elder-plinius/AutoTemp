@@ -1,10 +1,12 @@
 async function openAIChat(apiKey, model, messages, temperature = 0.7, top_p = 1.0, extra = {}) {
-  const url = 'https://api.openai.com/v1/chat/completions';
+  const useCustom = document.getElementById('useCustomApiBase');
+  const base = (useCustom && useCustom.checked ? (document.getElementById('apiBase')?.value?.trim()) : '') || 'https://api.openai.com/v1';
+  const url = base.replace(/\/$/, '') + '/chat/completions';
   const res = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${apiKey}`
+      ...(apiKey ? { 'Authorization': `Bearer ${apiKey}` } : {})
     },
     body: JSON.stringify({ model, messages, temperature, top_p, ...extra })
   });
@@ -195,6 +197,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const c = ensureChart(); if (!c) return;
     c.data.datasets[0].data.push({ x: temp, y: mean });
     c.update('none');
+  }
+  // Custom API base toggle
+  const useCustom = getEl('useCustomApiBase');
+  const apiBaseField = getEl('apiBaseField');
+  if (useCustom && apiBaseField){
+    const savedUse = localStorage.getItem('autotemp_use_custom_api') === '1';
+    useCustom.checked = savedUse;
+    apiBaseField.style.display = savedUse ? '' : 'none';
+    useCustom.addEventListener('change', ()=>{
+      apiBaseField.style.display = useCustom.checked ? '' : 'none';
+      localStorage.setItem('autotemp_use_custom_api', useCustom.checked ? '1' : '0');
+    });
   }
   // Run state and controls
   let running = false;
